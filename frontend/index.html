@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="NSE Volatility Scanner — Real-time stock volatility analysis and trading signals for Indian markets">
+    <title>NSE Volatility Scanner</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <!-- Top Accent Bar -->
+    <div class="accent-bar"></div>
+
+    <!-- Header -->
+    <header class="header" id="header">
+        <div class="header-left">
+            <div class="logo">
+                <div class="logo-icon">
+                    <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                        <path d="M4 20L10 12L16 16L24 6" stroke="url(#grad1)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M18 6H24V12" stroke="url(#grad1)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <defs><linearGradient id="grad1" x1="4" y1="6" x2="24" y2="20"><stop stop-color="#06b6d4"/><stop offset="1" stop-color="#8b5cf6"/></linearGradient></defs>
+                    </svg>
+                </div>
+                <h1>NSE Scanner</h1>
+            </div>
+            <span class="badge badge-version">v1.0</span>
+        </div>
+        <div class="header-center">
+            <div class="scan-status" id="scan-status">
+                <span class="status-dot" id="status-dot"></span>
+                <span id="status-text">Ready</span>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="last-scan" id="last-scan-time">—</div>
+            <button class="btn btn-scan" id="btn-scan" onclick="triggerScan()">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M1 8a7 7 0 0114 0A7 7 0 011 8zm7-3v3l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                Scan Now
+            </button>
+            <div class="countdown" id="countdown">
+                <span class="countdown-label">Next:</span>
+                <span class="countdown-value" id="countdown-value">—</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Market Overview Bar -->
+    <section class="market-overview" id="market-overview">
+        <div class="market-card" id="card-nifty50">
+            <div class="market-card-label">NIFTY 50</div>
+            <div class="market-card-price" id="nifty50-price">—</div>
+            <div class="market-card-change" id="nifty50-change">—</div>
+        </div>
+        <div class="market-card" id="card-banknifty">
+            <div class="market-card-label">BANK NIFTY</div>
+            <div class="market-card-price" id="banknifty-price">—</div>
+            <div class="market-card-change" id="banknifty-change">—</div>
+        </div>
+        <div class="market-card" id="card-vix">
+            <div class="market-card-label">INDIA VIX</div>
+            <div class="market-card-price" id="vix-price">—</div>
+            <div class="market-card-change" id="vix-change">—</div>
+        </div>
+        <div class="market-card" id="card-trend">
+            <div class="market-card-label">TREND FILTER</div>
+            <div class="trend-status" id="trend-status">—</div>
+            <div class="market-status" id="market-status">—</div>
+        </div>
+        <div class="market-card" id="card-stats">
+            <div class="market-card-label">SCAN INFO</div>
+            <div class="scan-info-value" id="stocks-scanned">—</div>
+            <div class="scan-info-sub" id="scan-duration">—</div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Sidebar Filters -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-section">
+                <h3 class="sidebar-title">Filters</h3>
+
+                <div class="filter-group">
+                    <label class="filter-label" for="filter-min-score">Min Score</label>
+                    <div class="filter-range-wrap">
+                        <input type="range" id="filter-min-score" min="0" max="10" step="0.5" value="0" class="filter-range">
+                        <span class="filter-range-value" id="min-score-value">0.0</span>
+                    </div>
+                </div>
+
+                <div class="filter-group">
+                    <label class="filter-label" for="filter-min-rr">Min R:R</label>
+                    <div class="filter-range-wrap">
+                        <input type="range" id="filter-min-rr" min="0" max="5" step="0.5" value="0" class="filter-range">
+                        <span class="filter-range-value" id="min-rr-value">0.0</span>
+                    </div>
+                </div>
+
+                <div class="filter-group">
+                    <label class="filter-label" for="filter-signal">Signal Type</label>
+                    <select id="filter-signal" class="filter-select">
+                        <option value="all">All Signals</option>
+                        <option value="BUY">BUY Only</option>
+                        <option value="SELL">SELL Only</option>
+                        <option value="WATCH">WATCH Only</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label class="filter-label" for="filter-sector">Sector</label>
+                    <select id="filter-sector" class="filter-select">
+                        <option value="all">All Sectors</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label class="filter-label" for="filter-refresh">Auto-Refresh (min)</label>
+                    <div class="filter-range-wrap">
+                        <input type="range" id="filter-refresh" min="1" max="15" step="1" value="5" class="filter-range">
+                        <span class="filter-range-value" id="refresh-value">5</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <h3 class="sidebar-title">Trade Settings</h3>
+                <div class="filter-group">
+                    <label class="filter-label" for="setting-capital">Capital (₹)</label>
+                    <input type="number" id="setting-capital" class="filter-input" value="50000" step="5000">
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label" for="setting-risk">Max Risk (%)</label>
+                    <input type="number" id="setting-risk" class="filter-input" value="2" step="0.5" min="0.5" max="5">
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <div class="dry-run-badge" id="dry-run-badge">
+                    <span class="dry-run-dot"></span>
+                    DRY RUN MODE
+                </div>
+            </div>
+        </aside>
+
+        <!-- Center Content -->
+        <div class="center-content">
+            <!-- Signals Table -->
+            <section class="signals-section" id="signals-section">
+                <div class="section-header">
+                    <h2>Top Signals</h2>
+                    <span class="signal-count" id="signal-count">0 signals</span>
+                </div>
+
+                <div class="table-container" id="table-container">
+                    <!-- Loading skeleton shown initially -->
+                    <div class="loading-skeleton" id="loading-skeleton">
+                        <div class="skeleton-row"></div>
+                        <div class="skeleton-row"></div>
+                        <div class="skeleton-row"></div>
+                        <div class="skeleton-row"></div>
+                        <div class="skeleton-row"></div>
+                    </div>
+
+                    <table class="signals-table" id="signals-table" style="display:none;">
+                        <thead>
+                            <tr>
+                                <th class="th-rank" data-sort="rank">#</th>
+                                <th class="th-symbol" data-sort="symbol">Symbol</th>
+                                <th class="th-price" data-sort="cmp">CMP (₹)</th>
+                                <th class="th-change" data-sort="pct_change">Change %</th>
+                                <th class="th-atr" data-sort="atr_pct">ATR %</th>
+                                <th class="th-volume" data-sort="volume_spike">Vol Spike</th>
+                                <th class="th-gap" data-sort="gap_pct">Gap %</th>
+                                <th class="th-rsi" data-sort="rsi">RSI</th>
+                                <th class="th-ai" data-sort="materiality">AI Impact</th>
+                                <th class="th-score" data-sort="combined_score">Score</th>
+                                <th class="th-signal" data-sort="signal_type">Signal</th>
+                                <th class="th-entry" data-sort="entry">Entry ₹</th>
+                                <th class="th-sl" data-sort="stop_loss">SL ₹</th>
+                                <th class="th-target" data-sort="target">Target ₹</th>
+                                <th class="th-rr" data-sort="rr_ratio">R:R</th>
+                                <th class="th-qty" data-sort="quantity">Qty</th>
+                                <th class="th-flags">Flags</th>
+                            </tr>
+                        </thead>
+                        <tbody id="signals-tbody">
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Empty state -->
+                <div class="empty-state" id="empty-state" style="display:none;">
+                    <div class="empty-icon">📊</div>
+                    <p>No signals yet. Click <strong>Scan Now</strong> to analyze the market.</p>
+                </div>
+
+                <!-- Error state -->
+                <div class="error-state" id="error-state" style="display:none;">
+                    <div class="error-icon">⚠️</div>
+                    <p id="error-message">An error occurred.</p>
+                </div>
+            </section>
+
+            <!-- News Feed -->
+            <section class="news-section" id="news-section">
+                <div class="section-header">
+                    <h2>Market News</h2>
+                    <span class="news-count" id="news-count">0 headlines</span>
+                </div>
+                <div class="news-list" id="news-list">
+                    <div class="news-empty">Click Scan Now to load market news</div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <span>NSE Volatility Scanner — Decision support tool for educational purposes only. Not investment advice.</span>
+    </footer>
+
+    <script src="/js/app.js"></script>
+</body>
+</html>
