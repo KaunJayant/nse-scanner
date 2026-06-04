@@ -30,7 +30,7 @@ Real-time NSE stock volatility scanner with AI-powered news sentiment analysis a
 
 ```bash
 # Clone
-git clone https://github.com/YOUR_USERNAME/nse-scanner.git
+git clone https://github.com/KaunJayant/nse-scanner.git
 cd nse-scanner
 
 # Install
